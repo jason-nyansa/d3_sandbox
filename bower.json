@@ -1,0 +1,15 @@
+{
+  "name": "angular-d3-sandbox-bower",
+  "description": "AngularJS + D3 Sandbox Bower",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "angular": "~1.5.0",
+    "angular-route": "~1.5.0",
+    "angular-loader": "~1.5.0",
+    "angular-mocks": "~1.5.0",
+    "bootstrap": "~3.3.7",
+    "d3": "~4.5.0",
+    "underscore": "~1.8.3"
+  }
+}
