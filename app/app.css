@@ -38,10 +38,11 @@
 
 .ap-graph .links line {
   stroke: #999;
+  stroke-width: 0.5px;
   stroke-opacity: 0.6;
 }
 
 .ap-graph .nodes circle {
   stroke: #fff;
-  stroke-width: 1.5px;
+  stroke-width: 1.2px;
 }

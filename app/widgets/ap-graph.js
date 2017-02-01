@@ -14,7 +14,7 @@ angular.module('widgets', [])
 
 function ApGraphController($element) {
   var $ctrl = this;
-  var svg, width, height, graph, gLinks, gNodes, simulation,
+  var svg, width, height, graph, gRect, gContainer, gLinks, gNodes, simulation,
       color = d3.scaleOrdinal(d3.schemeCategory20);
 
   var radius = d3.scaleSqrt()
@@ -24,9 +24,18 @@ function ApGraphController($element) {
   $ctrl.$onInit = function() {
     svg = d3.select($element.find('svg')[0]);
 
-    gLinks = svg.append('g')
+    gRect = svg.append('rect')
+      .style('fill', 'none')
+      .style('pointer-events', 'all')
+      .call(d3.zoom()
+        .scaleExtent([1 / 2, 2])
+        .on('zoom', zoomed));
+
+    gContainer = svg.append('g');
+
+    gLinks = gContainer.append('g')
       .attr('class', 'links');
-    gNodes = svg.append('g')
+    gNodes = gContainer.append('g')
       .attr('class', 'nodes');
 
     simulation = d3.forceSimulation()
@@ -63,6 +72,10 @@ function ApGraphController($element) {
     if (!graph) {
       return;
     }
+
+    gRect
+      .attr('width', width)
+      .attr('height', height);
 
     gLinks.call(links, graph);
     gNodes.call(nodes, graph);
@@ -116,6 +129,10 @@ function ApGraphController($element) {
     gNodes.selectAll('circle')
       .attr('cx', function(d) { return d.x; })  // = Math.max(5, Math.min(width - 5, d.x)); })
       .attr('cy', function(d) { return d.y; }); // = Math.max(5, Math.min(height - 5, d.y)); });
+  }
+
+  function zoomed() {
+    gContainer.attr('transform', d3.event.transform);
   }
 
   function dragStarted(d) {
