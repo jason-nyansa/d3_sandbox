@@ -14,10 +14,10 @@ angular.module('widgets', [])
 
 function ApGraphController($element) {
   var $ctrl = this;
-  var svg, width, height, graph, gRect, gContainer, gLinks, gNodes, simulation,
-      color = d3.scaleOrdinal(d3.schemeCategory20);
+  var svg, width, height, graph, gRect, gContainer, gLinks, gNodes, simulation;
 
-  var radius = d3.scaleSqrt()
+  var color = d3.scale.category20();
+  var radius = d3.scale.sqrt()
     .domain([0, 100])
     .range([1, 20]);
 
@@ -27,7 +27,7 @@ function ApGraphController($element) {
     gRect = svg.append('rect')
       .style('fill', 'none')
       .style('pointer-events', 'all')
-      .call(d3.zoom()
+      .call(d3.behavior.zoom()
         .scaleExtent([1 / 2, 2])
         .on('zoom', zoomed));
 
@@ -38,10 +38,10 @@ function ApGraphController($element) {
     gNodes = gContainer.append('g')
       .attr('class', 'nodes');
 
-    simulation = d3.forceSimulation()
-      .force('charge', d3.forceManyBody().strength(-10))
-      .force('link', d3.forceLink().id(function(d) { return d.id; }))
-      .force('center', d3.forceCenter())
+    simulation = d3.layout.force()
+      .gravity(0.05)
+      .distance(50)
+      .charge(-100)
       .on('tick', ticked);
 
     d3.select(window).on('resize', redraw);
@@ -60,7 +60,13 @@ function ApGraphController($element) {
         return ids.has(e.source) && ids.has(e.target);
       });
 
+      _.each(graph.edges, function(e) {
+        e.source = _.findIndex(graph.vertices, function(v) { return v.id == e.source; });
+        e.target = _.findIndex(graph.vertices, function(v) { return v.id == e.target; });
+      });
+
       redraw();
+      simulation.start();
     }
   }
 
@@ -81,42 +87,28 @@ function ApGraphController($element) {
     gNodes.call(nodes, graph);
 
     simulation
+      .size([width, height])
       .nodes(graph.vertices)
-
-    simulation.force('link')
       .links(graph.edges);
-
-    simulation.force('center')
-      .x(width / 2)
-      .y(height / 2);
   }
 
   function links(g, graph) {
     var gLines = g.selectAll('line').data(graph.edges);
-
-    gLines.exit().remove();
-
     gLines.enter().append('line');
       // .attr('stroke-width', function(d) { return Math.sqrt(d.attrs.snrDb); });
+    gLines.exit().remove();
   }
 
   function nodes(g, graph) {
-    var gCircles = g.selectAll('circle').data(graph.vertices);
-
-    gCircles.exit().remove();
-
-    var gCirclesEnter = gCircles.enter().append('circle');
-    gCirclesEnter
-      .call(d3.drag()
-        .on('start', dragStarted)
-        .on('drag', dragged)
-        .on('end', dragEnded))
+    var gCircles = g.selectAll('circle').data(graph.vertices, function(d) { return d.id; });
+    gCircles.enter().append('circle')
+      .call(simulation.drag)
       .append('title')
         .text(function(d) { return d.attrs.apName; });
-
-    gCirclesEnter.merge(gCircles) // new 4.x ENTER + UPDATE pattern
+    gCircles
       .attr('r', function(d) { return radius(d.attrs.numDevices); })
       .attr('fill', function(d) { return color(d.attrs.apGroup); });
+    gCircles.exit().remove();
   }
 
   function ticked() {
@@ -132,28 +124,7 @@ function ApGraphController($element) {
   }
 
   function zoomed() {
-    gContainer.attr('transform', d3.event.transform);
-  }
-
-  function dragStarted(d) {
-    if (!d3.event.active) {
-      simulation.alphaTarget(0.3).restart();
-    }
-    d.fx = d3.x;
-    d.fy = d3.y;
-  }
-
-  function dragged(d) {
-    d.fx = d3.event.x;
-    d.fy = d3.event.y;
-  }
-
-  function dragEnded(d) {
-    if (!d3.event.active) {
-      simulation.alphaTarget(0);
-    }
-    d.fx = null;
-    d.fy = null;
+    gContainer.attr('transform', 'translate(' + d3.event.translate + ')scale(' + d3.event.scale + ')');
   }
 }
 
