@@ -9,10 +9,50 @@ angular.module('widgets', [])
   bindings: {
     data: '<'
   },
-  controller: ['$element', ApGraphController]
+  controller: ['$element', '$interpolate', ApGraphController]
 })
 
-function ApGraphController($element) {
+var nodeTemplate =
+"\
+<table>\
+  <tbody>\
+    <tr>\
+      <td>AP Name</td>\
+      <td>{{ d.attrs.apName }}</td>\
+    </tr>\
+    <tr>\
+      <td>Ap Group</td>\
+      <td>{{ d.attrs.apGroup }}</td>\
+    </tr>\
+    <tr>\
+      <td>Num Clients</td>\
+      <td>{{ d.attrs.numDevices }}</td>\
+    </tr>\
+  </tbody>\
+</table>\
+";
+
+var linkTemplate =
+"\
+<table>\
+  <tbody>\
+    <tr>\
+      <td>Node 1</td>\
+      <td>{{ d.source.attrs.apName }}</td>\
+    </tr>\
+    <tr>\
+      <td>Node 2</td>\
+      <td>{{ d.target.attrs.apName }}</td>\
+    </tr>\
+    <tr>\
+      <td>SNR dB</td>\
+      <td>{{ d.attrs.snrDb }}</td>\
+    </tr>\
+  </tbody>\
+</table>\
+";
+
+function ApGraphController($element, $interpolate) {
   var $ctrl = this;
   var svg, width, height, graph, gRect, gContainer, gLinks, gNodes, simulation;
 
@@ -20,6 +60,28 @@ function ApGraphController($element) {
   var radius = d3.scale.sqrt()
     .domain([0, 100])
     .range([1, 20]);
+
+  var edgeDistance = d3.scale.linear()
+    .domain([50, 0])
+    .range([1, 20]);
+
+  var edgeColor = d3.scale.linear()
+    .domain([50, 0])
+    .range(['red', 'blue'])
+    .interpolate(d3.interpolateHcl);
+
+  var tooltip = d3.tip()
+    .attr('class', 'd3-tip')
+    .offset([-10, 0])
+    .html(function(d) {
+      var tooltipHtml;
+      if (d.source && d.target) {
+        tooltipHtml = $interpolate(linkTemplate)({ d: d });
+      } else {
+        tooltipHtml = $interpolate(nodeTemplate)({ d: d });
+      }
+      return tooltipHtml;
+    });
 
   $ctrl.$onInit = function() {
     svg = d3.select($element.find('svg')[0]);
@@ -31,7 +93,8 @@ function ApGraphController($element) {
         .scaleExtent([1 / 2, 2])
         .on('zoom', zoomed));
 
-    gContainer = svg.append('g');
+    gContainer = svg.append('g')
+      .call(tooltip);
 
     gLinks = gContainer.append('g')
       .attr('class', 'links');
@@ -42,6 +105,7 @@ function ApGraphController($element) {
       .gravity(0.05)
       .distance(50)
       .charge(-100)
+      // .linkDistance(function(d) { return edgeDistance(d.attrs.snrDb); })
       .on('tick', ticked);
 
     d3.select(window).on('resize', redraw);
@@ -94,7 +158,11 @@ function ApGraphController($element) {
 
   function links(g, graph) {
     var gLines = g.selectAll('line').data(graph.edges);
-    gLines.enter().append('line');
+    gLines.enter().append('line')
+      .on('mouseover', tooltip.show)
+      .on('mouseout', tooltip.hide);
+    // gLines
+      // .attr('stroke', function(d) { return edgeColor(d.attrs.snrDb); });
       // .attr('stroke-width', function(d) { return Math.sqrt(d.attrs.snrDb); });
     gLines.exit().remove();
   }
@@ -103,6 +171,8 @@ function ApGraphController($element) {
     var gCircles = g.selectAll('circle').data(graph.vertices, function(d) { return d.id; });
     gCircles.enter().append('circle')
       .call(simulation.drag)
+      .on('mouseover', tooltip.show)
+      .on('mouseout', tooltip.hide)
       .append('title')
         .text(function(d) { return d.attrs.apName; });
     gCircles

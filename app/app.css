@@ -46,3 +46,16 @@
   stroke: #fff;
   stroke-width: 1.2px;
 }
+
+.d3-tip {
+  font-weight: normal;
+  padding: 5px;
+}
+
+.d3-tip table td {
+  padding: 5px;
+}
+
+.d3-tip.n:after {
+  display: none;
+}
