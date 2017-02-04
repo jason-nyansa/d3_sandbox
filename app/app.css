@@ -31,9 +31,14 @@
   text-align: right;
 }
 
+.dashboard {
+  margin: 10px;
+}
+
 .ap-graph {
   height: 800px;
   width: 100%;
+  margin-top: 10px;
 }
 
 .ap-graph .links line {

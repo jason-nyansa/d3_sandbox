@@ -3,7 +3,8 @@
 // Declare app level module which depends on views, and components
 angular.module('angularSandbox', [
   'ngRoute',
-  'dashboard'
+  'dashboard',
+  'ui.bootstrap'
 ])
 
 .config(['$routeProvider', function($routeProvider) {

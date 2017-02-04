@@ -116,12 +116,12 @@ function ApGraphController($element, $interpolate) {
       graph = $ctrl.data;
 
       graph.vertices = _.filter(graph.vertices, function(v) {
-        return v.attrs.numDevices > 6;
+        return v.attrs.numDevices > 0;
       });
 
       var ids = new Set(_.pluck(graph.vertices, 'id'));
       graph.edges = _.filter(graph.edges, function(e) {
-        return ids.has(e.source) && ids.has(e.target);
+        return ids.has(e.source) && ids.has(e.target) && e.attrs.snrDb >= 10.0;
       });
 
       _.each(graph.edges, function(e) {

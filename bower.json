@@ -8,6 +8,7 @@
     "angular-route": "~1.5.0",
     "angular-loader": "~1.5.0",
     "angular-mocks": "~1.5.0",
+    "angular-bootstrap": "~2.5.0",
     "bootstrap": "~3.3.7",
     "d3": "~3.5.17",
     "d3-tip": "~0.6.7",
