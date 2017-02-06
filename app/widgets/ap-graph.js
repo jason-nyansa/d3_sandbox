@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('widgets', [])
+angular.module('widgets')
 
 .component('apGraph', {
   restrict: 'E',
@@ -10,7 +10,7 @@ angular.module('widgets', [])
     data: '<'
   },
   controller: ['$element', '$interpolate', ApGraphController]
-})
+});
 
 var nodeTemplate =
 "\
@@ -113,10 +113,10 @@ function ApGraphController($element, $interpolate) {
 
   $ctrl.$onChanges = function() {
     if ($ctrl.data) {
-      graph = $ctrl.data;
+      graph = JSON.parse(JSON.stringify($ctrl.data));
 
       graph.vertices = _.filter(graph.vertices, function(v) {
-        return v.attrs.numDevices > 0;
+        return v.attrs.numDevices > 2;
       });
 
       var ids = new Set(_.pluck(graph.vertices, 'id'));
@@ -197,5 +197,3 @@ function ApGraphController($element, $interpolate) {
     gContainer.attr('transform', 'translate(' + d3.event.translate + ')scale(' + d3.event.scale + ')');
   }
 }
-
-;

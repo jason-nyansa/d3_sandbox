@@ -64,3 +64,39 @@
 .d3-tip.n:after {
   display: none;
 }
+
+.ap-zooming {
+  height: 800px;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.ap-zooming text {
+  font-size: 11px;
+  pointer-events: none;
+}
+
+.ap-zooming text.parent {
+  fill: #1f77b4;
+}
+
+.ap-zooming circle {
+  fill: #ccc;
+  stroke: #999;
+  pointer-events: all;
+}
+
+.ap-zooming circle.parent {
+  fill: #1f77b4;
+  fill-opacity: .1;
+  stroke: steelblue;
+}
+
+.ap-zooming circle.parent:hover {
+  stroke: #ff7f0e;
+  stroke-width: .5px;
+}
+
+.ap-zooming circle.child {
+  pointer-events: none;
+}

@@ -15,6 +15,7 @@ angular.module('dashboard', ['resources', 'widgets'])
       .then(function(resp) {
         $scope.apGraphData = resp.data;
       });
+    $scope.activeTab = 2;
 }])
 
 ;

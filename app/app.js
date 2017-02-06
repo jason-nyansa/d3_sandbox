@@ -11,4 +11,6 @@ angular.module('angularSandbox', [
   $routeProvider.otherwise({ redirectTo: '/dashboard' });
 }])
 
+angular.module('widgets', []);
+
 ;
