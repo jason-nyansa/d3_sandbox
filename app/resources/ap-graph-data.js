@@ -9,8 +9,8 @@ angular.module('resources', [])
         var deferred = $q.defer();
 
         $http.get('resources/ap-graph-data.json').then(
-          function(data) {
-            deferred.resolve(data);
+          function(resp) {
+            deferred.resolve(resp.data);
           },
           function() {
             deferred.reject({});

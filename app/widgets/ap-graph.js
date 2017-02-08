@@ -9,7 +9,7 @@ angular.module('widgets')
   bindings: {
     data: '<'
   },
-  controller: ['$element', '$interpolate', ApGraphController]
+  controller: ['$element', '$interpolate', '$timeout', '$scope', ApGraphController]
 });
 
 var nodeTemplate =
@@ -52,7 +52,7 @@ var linkTemplate =
 </table>\
 ";
 
-function ApGraphController($element, $interpolate) {
+function ApGraphController($element, $interpolate, $timeout, $scope) {
   var $ctrl = this;
   var svg, width, height, graph, gRect, gContainer, gLinks, gNodes, simulation;
 
@@ -82,6 +82,12 @@ function ApGraphController($element, $interpolate) {
       }
       return tooltipHtml;
     });
+
+  $scope.$on('tabChanged', function(event, tabIndex) {
+    if (tabIndex == 0) {
+      $timeout(redraw);
+    }
+  });
 
   $ctrl.$onInit = function() {
     svg = d3.select($element.find('svg')[0]);
@@ -113,6 +119,11 @@ function ApGraphController($element, $interpolate) {
 
   $ctrl.$onChanges = function() {
     if ($ctrl.data) {
+      if (!svg) {
+        // let the init code run first
+        return $timeout($ctrl.$onChanges);
+      }
+
       graph = JSON.parse(JSON.stringify($ctrl.data));
 
       graph.vertices = _.filter(graph.vertices, function(v) {

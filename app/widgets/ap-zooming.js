@@ -9,31 +9,42 @@ angular.module('widgets')
   bindings: {
     data: '<'
   },
-  controller: ['$element', ApZoomingController]
+  controller: ['$element', '$timeout', '$scope', ApZoomingController]
 });
 
-function ApZoomingController($element) {
+function ApZoomingController($element, $timeout, $scope) {
   var $ctrl = this;
   var svg, gRoot, packLayout, width, height, rootRadius, treeRoot, zoomedNode;
 
   var x, y;
 
+  $scope.$on('tabChanged', function(event, tabIndex) {
+    if (tabIndex == 1) {
+      $timeout(redraw);
+    }
+  });
+
   $ctrl.$onInit = function() {
     svg = d3.select($element.find('svg')[0]);
 
-    gRoot = svg.append('g');
+    gRoot = svg.append('g')
+      .on('click', function() { zoom(treeRoot); });
 
     packLayout = d3.layout.pack()
       .value(function(d) {
         return d.attrs.numDevices;
       });
 
-    d3.select(window).on('resize', redraw);
-    d3.select(window).on('click', function() { zoom(treeRoot); });
+    // d3.select(window).on('resize', redraw);
   }
 
   $ctrl.$onChanges = function() {
     if ($ctrl.data) {
+      if (!svg) {
+        // let the init code run first
+        return $timeout($ctrl.$onChanges);
+      }
+
       var graph = JSON.parse(JSON.stringify($ctrl.data));
 
       var apGroups = _.chain(graph.vertices)
@@ -74,26 +85,27 @@ function ApZoomingController($element) {
     gRoot
       .attr('transform', 'translate(' + (width - rootRadius) / 2 + ',' + (height - rootRadius) / 2 + ')');
 
-    gRoot.selectAll('circle')
-        .data(nodes)
-      .enter().append('circle')
-        .attr('class', function(d) { return d.children ? 'parent' : 'child'; })
-        .attr('cx', function(d) { return d.x; })
-        .attr('cy', function(d) { return d.y; })
-        .attr('r', function(d) { return d.r; })
-        .on('click', function(d) { return zoom(d == zoomedNode ? treeRoot : d); });
+    var gCircles = gRoot.selectAll('circle')
+        .data(nodes);
+    gCircles.enter().append('circle');
+    gCircles
+      .attr('class', function(d) { return d.children ? 'parent' : 'child'; })
+      .attr('cx', function(d) { return d.x; })
+      .attr('cy', function(d) { return d.y; })
+      .attr('r', function(d) { return d.r; })
+      .on('click', function(d) { return zoom(d == zoomedNode ? treeRoot : d); });
 
-    gRoot.selectAll('text')
-        .data(nodes)
-      .enter().append('text')
-        .attr('class', function(d) { return d.children ? 'parent' : 'child'; })
-        .attr('x', function(d) { return d.x; })
-        .attr('y', function(d) { return d.y; })
-        .attr('dy', '.35em')
-        .attr('text-anchor', 'middle')
-        .style('opacity', function(d) { return d.r > 20 ? 1 : 0; })
-        .text(function(d) { return d.name || d.attrs.apName; });
-
+    var gText = gRoot.selectAll('text')
+        .data(nodes);
+    gText.enter().append('text')
+      .attr('dy', '.35em')
+      .attr('text-anchor', 'middle');
+    gText
+      .attr('class', function(d) { return d.children ? 'parent' : 'child'; })
+      .attr('x', function(d) { return d.x; })
+      .attr('y', function(d) { return d.y; })
+      .style('opacity', function(d) { return d.r > 20 ? 1 : 0; })
+      .text(function(d) { return d.name || d.attrs.apName; });
   }
 
   function zoom(d, i) {

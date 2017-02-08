@@ -1,12 +1,12 @@
 <div class="dashboard">
   <uib-tabset type="pills" active="activeTab">
     <uib-tab index="0" heading="AP Topology">
-      <ap-graph data="apGraphData"></ap-graph>
+      <ap-graph data="apGraphData" ng-show="activeTab == 0"></ap-graph>
     </uib-tab>
-    <uib-tab index="1" heading="AP Group Hierarchy">
+    <uib-tab index="1" heading="AP Group Zooming">
+      <ap-zooming data="apGraphData" ng-show="activeTab == 1"></ap-zooming>
     </uib-tab>
-    <uib-tab index="2" heading="AP Group Zooming">
-      <ap-zooming data="apGraphData"></ap-zooming>
+    <uib-tab index="2" heading="AP Group Hierarchy">
     </uib-tab>
   </uib-tabset>
 </div>
