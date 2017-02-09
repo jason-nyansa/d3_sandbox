@@ -12,6 +12,7 @@ angular.module('dashboard', ['resources', 'widgets'])
 .controller('DashboardCtrl', ['$scope', 'ApGraphData',
   function($scope, ApGraphData) {
     ApGraphData.load()
+      .then(ApGraphData.trim)
       .then(function(data) {
         $scope.apGraphData = data;
       });
@@ -19,6 +20,8 @@ angular.module('dashboard', ['resources', 'widgets'])
     $scope.$watch('activeTab', function(tabIndex) {
       $scope.$broadcast('tabChanged', tabIndex);
     });
+
+    $scope.activeTab = 2;
 }])
 
 ;

@@ -48,9 +48,6 @@ function ApZoomingController($element, $timeout, $scope) {
       var graph = JSON.parse(JSON.stringify($ctrl.data));
 
       var apGroups = _.chain(graph.vertices)
-        .filter(function(v) {
-          return v.attrs.numDevices > 0;
-        })
         .groupBy(function(v) {
           return v.attrs.apGroup;
         })

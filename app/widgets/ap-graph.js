@@ -126,15 +126,7 @@ function ApGraphController($element, $interpolate, $timeout, $scope) {
 
       graph = JSON.parse(JSON.stringify($ctrl.data));
 
-      graph.vertices = _.filter(graph.vertices, function(v) {
-        return v.attrs.numDevices > 2;
-      });
-
-      var ids = new Set(_.pluck(graph.vertices, 'id'));
-      graph.edges = _.filter(graph.edges, function(e) {
-        return ids.has(e.source) && ids.has(e.target) && e.attrs.snrDb >= 10.0;
-      });
-
+      // prep for D3 force layout
       _.each(graph.edges, function(e) {
         e.source = _.findIndex(graph.vertices, function(v) { return v.id == e.source; });
         e.target = _.findIndex(graph.vertices, function(v) { return v.id == e.target; });
