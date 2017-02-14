@@ -47,6 +47,11 @@
   stroke-opacity: 0.6;
 }
 
+.ap-graph .group-links line {
+  stroke: red;
+  stroke-opacity: 0.8;
+}
+
 .ap-graph .nodes circle {
   stroke: #fff;
   stroke-width: 1.2px;

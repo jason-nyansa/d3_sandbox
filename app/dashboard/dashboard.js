@@ -21,7 +21,7 @@ angular.module('dashboard', ['resources', 'widgets'])
       $scope.$broadcast('tabChanged', tabIndex);
     });
 
-    $scope.activeTab = 2;
+    $scope.activeTab = 1;
 }])
 
 ;
