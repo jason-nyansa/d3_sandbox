@@ -81,12 +81,12 @@
 
     var color = d3.scale.category20();
     var radius = d3.scale.sqrt()
-      .domain([0, 100])
+      .domain([0, 35])
       .range([1, 20]);
 
     var edgeDistance = d3.scale.linear()
       .domain([0, 30])
-      .range([150, 10]);
+      .range([100, 20]);
 
     var edgeColor = d3.scale.linear()
       .domain([50, 0])
@@ -129,16 +129,20 @@
       gContainer = svg.append('g')
         .call(tooltip);
 
-      gLinks = gContainer.append('g')
-        .attr('class', 'links');
       gGroupLinks = gContainer.append('g')
         .attr('class', 'group-links');
       gGroups = gContainer.append('g')
         .attr('class', 'groups');
+      gLinks = gContainer.append('g')
+        .attr('class', 'links');
 
       simulation = d3.layout.force()
-        .charge(-100)
-        .linkDistance(function(d) { return edgeDistance(d.numEdges); })
+        .charge(-500)
+        .gravity(0.1)
+        .friction(0.6)
+        .linkDistance(function(d) {
+          return Math.max(d.source.groupRadius + d.target.groupRadius, edgeDistance(d.numEdges));
+        })
         .on('tick', ticked);
 
       d3.select(window).on('resize', redraw);
@@ -153,10 +157,8 @@
 
         graph = JSON.parse(JSON.stringify($ctrl.data));
 
-        // prep for D3 force layout
         _.each(graph.edges, function(e) {
-          // e.source = _.findIndex(graph.vertices, function(v) { return v.id == e.source; });
-          // e.target = _.findIndex(graph.vertices, function(v) { return v.id == e.target; });
+          e.id = e.source + '_' + e.target;
           e.source = _.find(graph.vertices, function(v) { return v.id == e.source; });
           e.target = _.find(graph.vertices, function(v) { return v.id == e.target; });
         });
@@ -180,6 +182,7 @@
 
         graph.groupEdges = _.chain(graph.edges)
           .map(function(e) {
+            // for d3 force layout
             var sourceIndex = _.findIndex(nested, function(group) { return e.source.attrs.apGroup == group.key; }),
                 targetIndex = _.findIndex(nested, function(group) { return e.target.attrs.apGroup == group.key; });
 
@@ -197,8 +200,23 @@
           .values()
           .value();
 
+        // pre-compute pack layout for nodes in each group
+        _.each(nested, function(group) {
+          group.groupRadius = radius(group.attrs.numDevices);
+
+          d3.layout.pack()
+            .sort(null)
+            .size([group.groupRadius * 2, group.groupRadius * 2])
+            .children(function(d) { return d.values; })
+            .value(function(d) { return d.attrs.numDevices; })
+            // .nodes(_.pick(group, 'values', 'groupRadius'))
+            .nodes(group)
+            ;
+        });
+
+        filterEdges();
         redraw();
-        // simulation.start();
+        simulation.start();
       }
     }
 
@@ -210,28 +228,22 @@
       if (!graph) {
         return;
       }
+      Math.seedrandom('ap-graph-b-seed');
 
       gRect
         .attr('width', width)
         .attr('height', height);
 
-      d3.layout.pack()
-        .sort(null)
-        .size([width, height])
-        .children(function(d) { return d.values; })
-        .value(function(d) { return d.attrs.numDevices; })
-        .nodes({ values: nested });
+      gGroups.call(groups, nested);
+      gGroupLinks.call(groupLinks, graph.groupEdges);
+      gLinks.call(links, graph.filteredEdges);
 
       simulation
         .size([width, height])
         .nodes(nested)
         .links(graph.groupEdges)
-        .start()
-        .stop();
-
-      gGroups.call(groups, nested);
-      gGroupLinks.call(groupLinks, graph);
-      gLinks.call(links, graph);
+        // .start()
+        ;
     }
 
     function groups(g, groups) {
@@ -239,15 +251,15 @@
         .data(groups, function(group) { return group.key; });
       gGroups.enter().append('g')
         .append('circle')
-          .attr('class', 'nodes-group')
-          .call(simulation.drag)
-          .attr('fill', 'green')
-          .attr('r', function(d) { return radius(d.attrs.numDevices * 2); })
-          .attr('opacity', 0.5)
-          .attr('cx', function(d) { return d.x; })
-          .attr('cy', function(d) { return d.y; });
+          .attr('class', 'group-node');
+      gGroups.selectAll('circle.group-node')
+        .attr('r', function(d) { return d.groupRadius; });
       gGroups
-        .attr('opacity', 0.7);
+        .attr('class', function(d) { return 'nodes' + (d.faded ? ' faded' : ''); })
+        .on('click', groupClicked)
+        .call(simulation.drag);
+      gGroups.exit().remove();
+
 
       var gCircles = gGroups.selectAll('circle.node')
         .data(function(group) { return group.values; }, function(d) { return d.id; });
@@ -258,53 +270,81 @@
         .append('title')
           .text(function(d) { return d.attrs.apName; });
       gCircles
-        .attr('r', function(d) { return radius(d.attrs.numDevices); })
+        .attr('r', function(d) { return d.r; })
         .attr('fill', function(d) { return color(d.attrs.apGroup); })
-        .attr('cx', function(d) { return d.x; })
-        .attr('cy', function(d) { return d.y; });
+        .attr('cx', function(d) { return d.x - d.parent.groupRadius; })
+        .attr('cy', function(d) { return d.y - d.parent.groupRadius; });
       gCircles.exit().remove();
-
-      gGroups.exit().remove();
     }
 
-    function links(g, graph) {
-      var gLines = g.selectAll('line').data(graph.edges);
+    function links(g, edges) {
+      var gLines = g.selectAll('line').data(edges, function(d) { return d.id; });
       gLines.enter().append('line')
         .on('mouseover', tooltip.show)
         .on('mouseout', tooltip.hide);
       gLines
-        .attr('x1', function(d) { return d.source.x; })
-        .attr('y1', function(d) { return d.source.y; })
-        .attr('x2', function(d) { return d.target.x; })
-        .attr('y2', function(d) { return d.target.y; });
+        .attr('x1', function(d) { return d.source.parent.x + d.source.x - d.source.parent.groupRadius; })
+        .attr('y1', function(d) { return d.source.parent.y + d.source.y - d.source.parent.groupRadius; })
+        .attr('x2', function(d) { return d.target.parent.x + d.target.x - d.target.parent.groupRadius; })
+        .attr('y2', function(d) { return d.target.parent.y + d.target.y - d.target.parent.groupRadius; });
       gLines.exit().remove();
     }
 
-    function groupLinks(g, graph) {
-      var gLines = g.selectAll('line').data(graph.groupEdges, function(d) { return d.id; });
+    function groupLinks(g, edges) {
+      var gLines = g.selectAll('line').data(edges, function(d) { return d.id; });
       gLines.enter().append('line')
         .on('mouseover', tooltip.show)
         .on('mouseout', tooltip.hide);
       gLines
         .attr('stroke-width', function(d) { return Math.sqrt(d.numEdges); })
-        .attr('x1', function(d) { return d.source.x; })
-        .attr('y1', function(d) { return d.source.y; })
-        .attr('x2', function(d) { return d.target.x; })
-        .attr('y2', function(d) { return d.target.y; });
+        .attr('class', function(d) {
+          return d.source.faded || d.target.faded ? 'faded' : '';
+        })
+        // .attr('x1', function(d) { return d.source.x; })
+        // .attr('y1', function(d) { return d.source.y; })
+        // .attr('x2', function(d) { return d.target.x; })
+        // .attr('y2', function(d) { return d.target.y; })
+        ;
       gLines.exit().remove();
+    }
+
+    function filterEdges(selectedGroup) {
+      if (selectedGroup) {
+        graph.filteredEdges = _.filter(graph.edges, function(e) {
+          return e.source.parent == selectedGroup || e.target.parent == selectedGroup;
+        });
+      } else {
+        graph.filteredEdges = [];
+      }
+    }
+
+    function groupClicked(clickedGroup) {
+      if (d3.event.defaultPrevented) {
+        return; // dragged
+      }
+
+      clickedGroup.selected = !clickedGroup.selected;
+      _.each(nested, function(group) {
+        if (group != clickedGroup) {
+          group.selected = false;
+          group.faded = clickedGroup.selected;
+        }
+      });
+
+      filterEdges(clickedGroup.selected ? clickedGroup : undefined);
+      _.chain(graph.filteredEdges)
+        .map(function(e) { return [ e.source.parent, e.target.parent ]; })
+        .flatten()
+        .each(function(group) {
+          group.faded = false;
+        });
+
+      redraw();
     }
 
     function ticked() {
       gGroups.selectAll('g')
-        .attr('transform', function(d) { return 'translate(' + d.x + ',' + d.y + ')'; })
-        // .selectAll('circle.nodes-group')
-        //   .attr('cx', function(d) { return d.x; })
-        //   .attr('cy', function(d) { return d.y; });
-
-      gGroups.selectAll('g')
-        .selectAll('circle.node')
-          .attr('cx', function(d) { return d.x; })
-          .attr('cy', function(d) { return d.y; });
+        .attr('transform', function(d) { return 'translate(' + d.x + ',' + d.y + ')'; });
 
       gGroupLinks.selectAll('line')
         .attr('x1', function(d) { return d.source.x; })
@@ -313,10 +353,10 @@
         .attr('y2', function(d) { return d.target.y; });
 
       gLinks.selectAll('line')
-        .attr('x1', function(d) { return d.source.parent.x + d.source.x; })
-        .attr('y1', function(d) { return d.source.parent.y + d.source.y; })
-        .attr('x2', function(d) { return d.target.parent.x + d.target.x; })
-        .attr('y2', function(d) { return d.target.parent.y + d.target.y; });
+        .attr('x1', function(d) { return d.source.parent.x + d.source.x - d.source.parent.groupRadius; })
+        .attr('y1', function(d) { return d.source.parent.y + d.source.y - d.source.parent.groupRadius; })
+        .attr('x2', function(d) { return d.target.parent.x + d.target.x - d.target.parent.groupRadius; })
+        .attr('y2', function(d) { return d.target.parent.y + d.target.y - d.target.parent.groupRadius; });
     }
 
     function zoomed() {

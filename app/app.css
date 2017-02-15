@@ -44,17 +44,27 @@
 .ap-graph .links line {
   stroke: #999;
   stroke-width: 0.5px;
-  stroke-opacity: 0.6;
+  stroke-opacity: 0.8;
 }
 
 .ap-graph .group-links line {
   stroke: red;
-  stroke-opacity: 0.8;
+  stroke-opacity: 0.2;
 }
 
 .ap-graph .nodes circle {
   stroke: #fff;
-  stroke-width: 1.2px;
+  stroke-width: 0.5px;
+  opacity: 0.8;
+}
+
+.ap-graph .nodes .group-node {
+  opacity: 0.1;
+  fill: grey;
+}
+
+.ap-graph .faded {
+  opacity: 0.1;
 }
 
 .d3-tip {
