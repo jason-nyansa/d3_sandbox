@@ -79,7 +79,7 @@
         gRect, gContainer, gLinks, gGroupLinks, gGroups,
         simulation;
 
-    var color = d3.scale.category20();
+    var color = d3.scale.ordinal().range(['#99E4EF','#B4C7D4', '#B9E7A2', '#DDB5D0', '#B9B1B1', '#B2CEF4']);
     var radius = d3.scale.sqrt()
       .domain([0, 35])
       .range([1, 20]);
@@ -267,8 +267,7 @@
         .attr('class', 'node')
         .on('mouseover', tooltip.show)
         .on('mouseout', tooltip.hide)
-        .append('title')
-          .text(function(d) { return d.attrs.apName; });
+        .append('title');
       gCircles
         .attr('r', function(d) { return d.r; })
         .attr('fill', function(d) { return color(d.attrs.apGroup); })

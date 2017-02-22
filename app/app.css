@@ -1,5 +1,29 @@
 /* app css stylesheet */
 
+/* Sandbox Chrome + Menus */
+body {
+  background-color: #424355;
+}
+.navbar-default {
+  background-color: #424355;
+  border: none;
+  display: none; /* Hiding the navbar/header */
+}
+.navbar-brand {
+  color: #fff;
+}
+.nav-pills > li > a {
+  color: #999;
+}
+.nav-pills > li.active > a,
+.nav-pills > li.active > a:visited,
+.nav-pills > li.active > a:hover,
+.nav-pills > li.active > a:active {
+  background-color: #4E5574;
+}
+
+
+/* D3 */
 .menu {
   list-style: none;
   border-bottom: 0.1em solid black;
@@ -36,31 +60,31 @@
 }
 
 .ap-graph {
-  height: 800px;
+  height: 1000px;
   width: 100%;
   margin-top: 10px;
 }
 
 .ap-graph .links line {
-  stroke: #999;
+  stroke: #333;
   stroke-width: 0.5px;
-  stroke-opacity: 0.8;
-}
-
-.ap-graph .group-links line {
-  stroke: red;
   stroke-opacity: 0.2;
 }
 
+.ap-graph .group-links line {
+  stroke: #FF8675;
+  stroke-opacity: 0.8;
+}
+
 .ap-graph .nodes circle {
-  stroke: #fff;
+  stroke: rgba(255, 255, 255, 0.1);
   stroke-width: 0.5px;
-  opacity: 0.8;
+  opacity: .8;
 }
 
 .ap-graph .nodes .group-node {
-  opacity: 0.1;
-  fill: grey;
+  opacity: 0.2;
+  fill: #ddd;
 }
 
 .ap-graph .faded {
