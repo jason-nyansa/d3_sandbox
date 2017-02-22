@@ -1,5 +1,43 @@
 <div class="row">
   <div class="col-xs-12">
+    <div class="btn-group pull-right symptoms-filter" uib-dropdown is-open="status.isopen">
+      <button id="single-button" type="button" class="btn btn-primary" uib-dropdown-toggle ng-disabled="disabled">
+        {{ $ctrl.symptomFilter.symptom | symptomToReadable }}
+        on {{ $ctrl.symptomFilter.channel | channelToReadable }}
+        ( {{ $ctrl.symptomFilter.totalHours }} hours )
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-right"
+          uib-dropdown-menu role="menu"
+          aria-labelledby="single-button">
+        <li class="dropdown-header">5 GHz</li>
+        <li role="separator" class="divider"></li>
+        <li role="menuitem"
+            ng-class="{ active: f.symptom == $ctrl.symptomFilter.symptom && f.channel == $ctrl.symptomFilter.channel }"
+            ng-repeat="f in $ctrl.symptomFilters | filter:{ channel:'5ghz' } | orderBy:'-totalHours'"
+            ng-click="$ctrl.symptomFilterSelected(f)">
+          <a href="">{{ f.symptom | symptomToReadable }}
+            <span class="symptom-hours">( {{ f.totalHours }} hours )</span>
+          </a>
+        </li>
+        <li role="separator" class="divider"></li>
+        <li class="dropdown-header">2.4 GHz</li>
+        <li role="separator" class="divider"></li>
+        <li role="menuitem"
+            ng-class="{ active: f.symptom == $ctrl.symptomFilter.symptom && f.channel == $ctrl.symptomFilter.channel }"
+            ng-repeat="f in $ctrl.symptomFilters | filter:{ channel:'2ghz' } | orderBy:'-totalHours'"
+            ng-click="$ctrl.symptomFilterSelected(f)">
+          <a href="">{{ f.symptom | symptomToReadable }}
+            <span class="symptom-hours">( {{ f.totalHours }} hours )</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-xs-12">
     <svg class="ap-graph"></svg>
   </div>
 </div>
