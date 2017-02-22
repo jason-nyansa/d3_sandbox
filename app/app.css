@@ -91,6 +91,12 @@ body {
   opacity: 0.1;
 }
 
+.symptoms-filter .symptom-hours {
+  font-size: 10px;
+  /*color: #777;*/
+  /*float: right;*/
+}
+
 .d3-tip {
   font-weight: normal;
   padding: 5px;

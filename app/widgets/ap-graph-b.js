@@ -11,6 +11,16 @@
       data: '<'
     },
     controller: ['$element', '$interpolate', '$timeout', '$scope', ApGraphBController]
+  })
+  .filter('channelToReadable', function() {
+    return function(channel) {
+      return ({ '2ghz': '2 GHz', '5ghz': '5 GHz' })[channel];
+    };
+  })
+  .filter('symptomToReadable', function() {
+    return function(symptom) {
+      return symptom == "" ? "All Symptoms" : symptom;
+    };
   });
 
   var nodeTemplate =
@@ -157,6 +167,30 @@
 
         graph = JSON.parse(JSON.stringify($ctrl.data));
 
+        $ctrl.symptomFilters = _.chain(graph.clientHours)
+          .mapObject(function(symptomDistribs, channel) {
+            return _.chain(symptomDistribs)
+              .mapObject(function(uuidHours, symptom) {
+                var symptomTotalHours = _.chain(uuidHours)
+                  .values()
+                  .reduce(function(m, n) { return m + n; }, 0)
+                  .value();
+
+                return { channel: channel, symptom: symptom, totalHours: symptomTotalHours };
+              })
+              .values()
+              .value();
+          })
+          .values()
+          .flatten()
+          .value();
+
+        $ctrl.symptomFilter = _.max($ctrl.symptomFilters, function(opt) {
+          return opt.totalHours;
+        });
+
+
+
         _.each(graph.edges, function(e) {
           e.id = e.source + '_' + e.target;
           e.source = _.find(graph.vertices, function(v) { return v.id == e.source; });
@@ -218,6 +252,10 @@
         redraw();
         simulation.start();
       }
+    }
+
+    $ctrl.symptomFilterSelected = function(filter) {
+      $ctrl.symptomFilter = filter;
     }
 
     function redraw() {
