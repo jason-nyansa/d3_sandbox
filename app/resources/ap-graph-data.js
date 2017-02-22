@@ -61,6 +61,18 @@ angular.module('resources', [])
           return ids.has(e.source) && ids.has(e.target) && e.attrs.snrDb >= 10.0;
         });
 
+        _.each(graph.clientHours, function(symptomDistribs, channel) {
+          _.each(symptomDistribs, function(uuidHours, symptom) {
+            _.chain(uuidHours)
+              .keys()
+              .each(function(apUuid) {
+                if (!ids.has(apUuid)) {
+                  uuidHours[apUuid] = 0;
+                }
+              });
+          });
+        });
+
         return graph;
       }
     };
