@@ -39,10 +39,12 @@
         <td>Affected Client-Hours</td>\
         <td>{{ d.attrs.clientHours }}</td>\
       </tr>\
+<!--\
       <tr>\
         <td>Num Clients</td>\
         <td>{{ d.attrs.numDevices }}</td>\
       </tr>\
+-->\
     </tbody>\
   </table>\
   ";
@@ -91,7 +93,7 @@
     var $ctrl = this;
     var svg, width, height, graph, nested, savedNested,
         gRect, gContainer, gLinks, gGroupLinks, gGroups,
-        simulation, maxSymptomFilter;
+        simulation, maxSymptomFilter, lastSelectedGroup;
 
     var color = d3.scale.ordinal().range(['#99E4EF','#B4C7D4', '#B9E7A2', '#DDB5D0', '#B9B1B1', '#B2CEF4']);
     var numDevicesRadius = d3.scale.sqrt()
@@ -206,7 +208,7 @@
 
         // third, prepare the node data with the symptom filter applied
         filterSymptom();
-        filterEdges();
+        refreshFocusStates();
         redraw();
         simulation.start();
       }
@@ -216,9 +218,17 @@
       $ctrl.symptomFilter = filter;
 
       filterSymptom();
-      filterEdges();
+      var clickedGroup;
+      if (lastSelectedGroup) {
+        clickedGroup = _.find(nested, function(group) { return group.key == lastSelectedGroup.key; });
+        if (clickedGroup) {
+          clickedGroup.selected = true;
+        }
+      }
+      refreshFocusStates(clickedGroup);
       redraw();
       simulation.start();
+      redraw(); // XXX this is needed because the groupEdges only get analyzed after force layout started
     }
 
     function filterSymptom() {
@@ -400,16 +410,45 @@
       gLines.exit().remove();
     }
 
-    function filterEdges(selectedGroup) {
-      if (selectedGroup) {
+    function _filterEdges(clickedGroup) {
+      if (clickedGroup && clickedGroup.selected) {
         graph.filteredEdges = _.filter(graph.edges, function(e) {
           return _.contains(graph.filteredVertices, e.source)
             && _.contains(graph.filteredVertices, e.target)
-            && (e.source.parent == selectedGroup || e.target.parent == selectedGroup);
+            && (e.source.parent == clickedGroup || e.target.parent == clickedGroup);
         });
       } else {
         graph.filteredEdges = [];
       }
+    }
+
+    function _refreshFades(clickedGroup) {
+      if (clickedGroup) {
+        _.each(nested, function(group) {
+          if (group != clickedGroup) {
+            group.selected = false;
+            group.faded = clickedGroup.selected;
+          }
+        });
+
+        _.chain(graph.filteredEdges)
+          .map(function(e) { return [ e.source.parent, e.target.parent ]; })
+          .flatten()
+          .uniq(function(group) { return group.key; })
+          .each(function(group) {
+            group.faded = false;
+          });
+      } else {
+        _.each(nested, function(group) {
+          group.selected = false;
+          group.faded = false;
+        });
+      }
+    }
+
+    function refreshFocusStates(clickedGroup) {
+      _filterEdges(clickedGroup);
+      _refreshFades(clickedGroup);
     }
 
     function groupClicked(clickedGroup) {
@@ -418,22 +457,9 @@
       }
 
       clickedGroup.selected = !clickedGroup.selected;
-      _.each(nested, function(group) {
-        if (group != clickedGroup) {
-          group.selected = false;
-          group.faded = clickedGroup.selected;
-        }
-      });
-
-      filterEdges(clickedGroup.selected ? clickedGroup : undefined);
-      _.chain(graph.filteredEdges)
-        .map(function(e) { return [ e.source.parent, e.target.parent ]; })
-        .flatten()
-        .each(function(group) {
-          group.faded = false;
-        });
-
+      refreshFocusStates(clickedGroup);
       redraw();
+      lastSelectedGroup = clickedGroup.selected ? clickedGroup : undefined;
     }
 
     function ticked() {

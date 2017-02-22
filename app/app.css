@@ -57,6 +57,7 @@ body {
 
 .dashboard {
   margin: 10px;
+  position: fixed;
 }
 
 .ap-graph {
