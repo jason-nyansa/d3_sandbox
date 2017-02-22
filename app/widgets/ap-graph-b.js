@@ -355,7 +355,7 @@
           .attr('class', 'group-node');
       gGroups
         .attr('class', function(d) { return 'nodes' + (d.faded ? ' faded' : ''); });
-      gGroups.exit().transition(tran).remove();
+      gGroups.exit().transition(tran).attr('opacity', 0).remove();
 
       var gGroupNodes = gGroups.select('circle.group-node');
       gGroupNodes
@@ -376,7 +376,7 @@
         .attr('cy', function(d) { return d.y - d.parent.groupRadius; })
         .attr('r', function(d) { return d.r; })
         ;
-      gCircles.exit().transition(tran).remove();
+      gCircles.exit().transition(tran).attr('r', 0).remove();
     }
 
     function links(g, edges) {
