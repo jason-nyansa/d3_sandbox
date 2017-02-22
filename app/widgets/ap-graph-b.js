@@ -95,8 +95,8 @@
         gRect, gContainer, gLinks, gGroupLinks, gGroups,
         simulation, maxSymptomFilter, lastSelectedGroup;
 
-    var color = d3.scale.ordinal().range(['#99E4EF','#B4C7D4', '#B9E7A2', '#DDB5D0', '#B9B1B1', '#B2CEF4']);
-    var numDevicesRadius = d3.scale.sqrt()
+    var color = d3.scale.ordinal().range(['#99E4EF','#B4C7D4', '#B9E7A2', '#DDB5D0', '#B9B1B1', '#B2CEF4', '#74A2D1', '#AFA4C2', '#93FFE7', '#C0A7E8', '#FFE3A9', '#DAD8A7', '#FF9E9D', '#7FC7AF']);
+    var radius = d3.scale.sqrt()
       .domain([0, 35])
       .range([1, 20]);
     var clientHoursRadius;

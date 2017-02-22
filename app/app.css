@@ -3,25 +3,77 @@
 /* Sandbox Chrome + Menus */
 body {
   background-color: #424355;
+  padding: 30px;
 }
+
 .navbar-default {
   background-color: #424355;
   border: none;
   display: none; /* Hiding the navbar/header */
 }
+
 .navbar-brand {
   color: #fff;
 }
+
 .nav-pills > li > a {
   color: #999;
 }
+
 .nav-pills > li.active > a,
 .nav-pills > li.active > a:visited,
 .nav-pills > li.active > a:hover,
 .nav-pills > li.active > a:active {
   background-color: #4E5574;
 }
+.btn-dark {
+  color: #EEEEEE;
+  background-color: #4E5574;
+  border-color: none;
+}
 
+.btn-dark:hover,
+.btn-dark:focus,
+.btn-dark:active,
+.btn-dark.active,
+.open .dropdown-toggle.btn-dark {
+  color: #EEEEEE;
+  background-color: #575E7E;
+  border-color: none;
+}
+
+.btn-dark:active,
+.btn-dark.active,
+.open .dropdown-toggle.btn-dark {
+  background-image: none;
+}
+
+.dropdown-menu {
+  color: #EEEEEE;
+  background-color: #575E7E;
+}
+
+.dropdown-header {
+  color: #EEEEEE;
+}
+
+.dropdown-menu > li > a {
+  color: #EEEEEE;
+}
+
+.dropdown-menu > li:hover > a {
+  background-color: #424A6E;
+  color: #EEEEEE;
+}
+
+.dropdown-menu > .active > a,
+.dropdown-menu > .active:hover > a {
+  background-color: #424A6E;
+}
+
+.dropdown-menu .divider {
+  background-color: #424A6E;
+}
 
 /* D3 */
 .menu {
@@ -67,7 +119,7 @@ body {
 }
 
 .ap-graph .links line {
-  stroke: #333;
+  stroke: #FFF;
   stroke-width: 0.5px;
   stroke-opacity: 0.2;
 }
