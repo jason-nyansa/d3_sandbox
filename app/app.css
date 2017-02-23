@@ -51,6 +51,8 @@ body {
 .dropdown-menu {
   color: #EEEEEE;
   background-color: #575E7E;
+  height: 600px;
+  overflow: scroll;
 }
 
 .dropdown-header {
